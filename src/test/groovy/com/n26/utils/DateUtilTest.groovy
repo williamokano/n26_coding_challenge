@@ -16,4 +16,20 @@ class DateUtilTest extends Specification {
         then:
         expectedMilli == DateUtil.getEpochFromLocalDate(localDateTime)
     }
+
+    def "should convert millis to seconds"(long millis, long seconds) {
+        expect:
+        seconds == DateUtil.secondsInMillis(millis)
+
+        where:
+        millis | seconds
+        60000  | 60
+        60001  | 60
+        60999  | 60
+        60654  | 60
+        70000  | 70
+        70999  | 70
+        70001  | 70
+        70690  | 70
+    }
 }
