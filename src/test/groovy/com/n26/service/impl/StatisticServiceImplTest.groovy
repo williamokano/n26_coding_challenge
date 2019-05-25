@@ -15,11 +15,11 @@ class StatisticServiceImplTest extends Specification {
 
         then:
         1 * transactionsRepository.findAll() >> transactions
-        statistic.sum == new BigDecimal(sum)
-        statistic.avg == new BigDecimal(avg)
-        statistic.min == new BigDecimal(min)
-        statistic.max == new BigDecimal(max)
-        statistic.count == count
+        statistic.getSum() == new BigDecimal(sum)
+        statistic.getAvg() == new BigDecimal(avg)
+        statistic.getMin() == new BigDecimal(min)
+        statistic.getMax() == new BigDecimal(max)
+        statistic.getCount() == count
 
         where:
         sum     | avg    | min    | max    | count | transactions
