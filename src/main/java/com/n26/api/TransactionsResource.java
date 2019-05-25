@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.validation.Valid;
 
-@RequestMapping(value = "/transactions", consumes = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/transactions")
 public interface TransactionsResource {
     @PostMapping
     void createTransaction(@Valid @RequestBody CreateTransactionsRequest createTransactionsRequest);

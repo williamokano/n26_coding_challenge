@@ -5,7 +5,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-@RequestMapping(value = "/statistics", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/statistics")
 public interface StatisticsResource {
     @GetMapping
     StatisticsResponse getStatistics();

@@ -1,11 +1,10 @@
-package com.n26.api.request;
+package com.n26.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -13,9 +12,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateTransactionsRequest {
-    @NotNull
+public class Transaction {
     private BigDecimal amount;
-    @NotNull
     private LocalDateTime timestamp;
 }
