@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 public class CreateTransactionsRequest {
     @NotNull
     private BigDecimal amount;
+
     @NotNull
     private LocalDateTime timestamp;
 }

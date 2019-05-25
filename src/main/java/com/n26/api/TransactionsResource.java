@@ -1,7 +1,6 @@
 package com.n26.api;
 
 import com.n26.api.request.CreateTransactionsRequest;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

@@ -34,6 +34,6 @@ public class TransactionsController implements TransactionsResource {
     @Override
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTransactions() {
-
+        transactionsService.clearTransactions();
     }
 }
