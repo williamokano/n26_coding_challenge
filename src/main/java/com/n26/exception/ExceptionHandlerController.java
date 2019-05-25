@@ -16,7 +16,7 @@ public class ExceptionHandlerController {
     private final ConfigResolver configResolver;
 
     @Autowired
-    ExceptionHandlerController(ConfigResolver configResolver) {
+    public ExceptionHandlerController(ConfigResolver configResolver) {
         this.configResolver = configResolver;
     }
 
