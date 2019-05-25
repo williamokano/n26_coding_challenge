@@ -30,6 +30,14 @@ class TransactionsServiceImplTest extends Specification {
         1 * transactionsRepository.save(transaction)
     }
 
+    def "should clear transactions"() {
+        when:
+        transactionService.clearTransactions()
+
+        then:
+        1 * transactionsRepository.clearTransactions()
+    }
+
     def "should throw exception if transaction is in the future"() {
         given:
         def transaction = Transaction.builder()
