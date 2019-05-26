@@ -77,6 +77,24 @@ public class TransactionsControllerIntegratedTest extends BaseControllerTest {
     }
 
     @Test
+    public void should_return_unprocessable_entity_if_wrong_type() throws Exception {
+        String content = "{\"amount\": \"10.01\", \"timestamp\":\"2018-07-17T09:59:51 PM\"}";
+        mockMvc.perform(post(TRANSACTIONS_PATH)
+                .content(content)
+                .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    public void should_return_bad_request_if_not_parseable_body() throws Exception {
+        String content = "I'm not parsable";
+        mockMvc.perform(post(TRANSACTIONS_PATH)
+                .content(content)
+                .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     public void should_not_create_transaction_if_transaction_is_before_beginning_transactions_window() throws Exception {
         CreateTransactionRequest request = CreateTransactionRequest.builder()
                 .amount(new BigDecimal("315.01"))
