@@ -1,17 +1,13 @@
 package com.n26.service.impl;
 
-import com.n26.model.Statistic;
-import com.n26.model.Transaction;
+import com.n26.model.Statistics;
 import com.n26.repository.TransactionsRepository;
 import com.n26.service.StatisticsService;
+import com.n26.utils.BigDecimalUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.List;
-
-import static com.n26.utils.StatisticUtil.updateStatisticMaxIfTransactionIsGreater;
-import static com.n26.utils.StatisticUtil.updateStatisticMinIfTransactionIsLesser;
 
 @Service
 public class StatisticsServiceImpl implements StatisticsService {
@@ -24,13 +20,13 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
 
     @Override
-    public Statistic getStatistics() {
-        Statistic statistic = processTransactions();
+    public Statistics getStatistics() {
+        Statistics statistic = processTransactions();
 
         return formatRoundHalfUp(statistic);
     }
 
-    private Statistic formatRoundHalfUp(Statistic statistic) {
+    private Statistics formatRoundHalfUp(Statistics statistic) {
         statistic.setSum(statistic.getSum().setScale(2, BigDecimal.ROUND_HALF_UP));
         statistic.setAvg(statistic.getAvg().setScale(2, BigDecimal.ROUND_HALF_UP));
         statistic.setMin(statistic.getMin().setScale(2, BigDecimal.ROUND_HALF_UP));
@@ -39,51 +35,25 @@ public class StatisticsServiceImpl implements StatisticsService {
         return statistic;
     }
 
-    private Statistic processTransactions() {
-        List<Transaction> transactions = transactionsRepository.findAll();
-        Statistic statistic = createStatisticFromTransactionsList(transactions);
+    private Statistics processTransactions() {
+        Statistics responseStatistics = Statistics.builder()
+                .sum(new BigDecimal(0))
+                .avg(new BigDecimal(0))
+                .min(new BigDecimal(0))
+                .max(new BigDecimal(0))
+                .count(0L)
+                .build();
 
-        transactions.forEach(transaction -> {
-            updateStatisticMinIfTransactionIsLesser(statistic, transaction);
-            updateStatisticMaxIfTransactionIsGreater(statistic, transaction);
+        transactionsRepository.getAllStatistics().forEach(statistics -> mergeStatistics(responseStatistics, statistics));
 
-            updateSum(statistic, transaction);
-            increaseCount(statistic);
-        });
-
-        if (statistic.getCount() > 0) {
-            statistic.setAvg(calculateAverage(statistic));
-        }
-
-        return statistic;
+        return responseStatistics;
     }
 
-    private Statistic createStatisticFromTransactionsList(List<Transaction> transactions) {
-        Statistic.StatisticBuilder builder = Statistic.builder()
-                .sum(BigDecimal.ZERO)
-                .avg(BigDecimal.ZERO)
-                .max(BigDecimal.ZERO)
-                .min(BigDecimal.ZERO)
-                .count(0L);
-
-        if (!transactions.isEmpty()) {
-            builder.min(transactions.get(0).getAmount())
-                    .max(transactions.get(0).getAmount())
-                    .build();
-        }
-
-        return builder.build();
-    }
-
-    private void updateSum(Statistic statistic, Transaction transaction) {
-        statistic.setSum(statistic.getSum().add(transaction.getAmount()));
-    }
-
-    private void increaseCount(Statistic statistic) {
-        statistic.setCount(statistic.getCount() + 1);
-    }
-
-    private BigDecimal calculateAverage(Statistic statistic) {
-        return new BigDecimal(statistic.getSum().doubleValue() / statistic.getCount());
+    private void mergeStatistics(Statistics first, Statistics second) {
+        first.setSum(first.getSum().add(second.getSum()));
+        first.setMin(first.getCount() == 0 ? second.getMin() : BigDecimalUtil.min(first.getMin(), second.getMin()));
+        first.setMax(first.getCount() == 0 ? second.getMax() : BigDecimalUtil.max(first.getMax(), second.getMax()));
+        first.setCount(first.getCount() + second.getCount());
+        first.setAvg(BigDecimalUtil.avg(first.getSum(), first.getCount()));
     }
 }

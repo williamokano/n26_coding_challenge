@@ -1,12 +1,12 @@
 package com.n26.utils
 
-import com.n26.model.Statistic
+import com.n26.model.Statistics
 import com.n26.model.Transaction
 import spock.lang.Specification
 
 import java.time.LocalDateTime
 
-class StatisticUtilTest extends Specification {
+class StatisticsUtilTest extends Specification {
 
     def "should update statistic min if transaction amount is lesser"(String transactionAmout, String statisticMin, String expected) {
         given:
@@ -14,7 +14,7 @@ class StatisticUtilTest extends Specification {
                 .amount(new BigDecimal(transactionAmout))
                 .timestamp(LocalDateTime.now())
                 .build()
-        Statistic statistic = Statistic.builder()
+        Statistics statistic = Statistics.builder()
                 .min(new BigDecimal(statisticMin))
                 .build()
 
@@ -42,7 +42,7 @@ class StatisticUtilTest extends Specification {
                 .amount(new BigDecimal(transactionAmout))
                 .timestamp(LocalDateTime.now())
                 .build()
-        Statistic statistic = Statistic.builder()
+        Statistics statistic = Statistics.builder()
                 .max(new BigDecimal(statisticMax))
                 .build()
 

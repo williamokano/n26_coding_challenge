@@ -13,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -52,6 +53,31 @@ public class StatisticsControllerIntegratedTest {
     @Test
     public void should_obtain_calculated_statistics_when_has_transaction() throws Throwable {
         insertTransactions();
+        mockMvc.perform(get(STATISTICS_PATH))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sum", is("779.91")))
+                .andExpect(jsonPath("$.avg", is("48.74")))
+                .andExpect(jsonPath("$.min", is("10.11")))
+                .andExpect(jsonPath("$.max", is("98.79")))
+                .andExpect(jsonPath("$.count", is(16)));
+    }
+
+    @Test
+    public void should_obtain_same_calculated_statistics_if_two_requests() throws Throwable {
+        insertTransactions();
+        Transaction trx = TestUtil.transaction("45.22");
+        trx.setTimestamp(LocalDateTime.now().minusSeconds(58));
+        transactionsService.addTransaction(trx);
+
+        mockMvc.perform(get(STATISTICS_PATH))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sum", is("825.13")))
+                .andExpect(jsonPath("$.avg", is("48.54")))
+                .andExpect(jsonPath("$.min", is("10.11")))
+                .andExpect(jsonPath("$.max", is("98.79")))
+                .andExpect(jsonPath("$.count", is(17)));
+
+        Thread.sleep(3000);
         mockMvc.perform(get(STATISTICS_PATH))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.sum", is("779.91")))

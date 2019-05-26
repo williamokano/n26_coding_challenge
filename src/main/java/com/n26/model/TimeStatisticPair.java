@@ -5,16 +5,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Statistic {
-    private BigDecimal sum;
-    private BigDecimal avg;
-    private BigDecimal max;
-    private BigDecimal min;
-    private Long count;
+public class TimeStatisticPair {
+    private LocalDateTime time;
+    private Statistics statistic;
 }

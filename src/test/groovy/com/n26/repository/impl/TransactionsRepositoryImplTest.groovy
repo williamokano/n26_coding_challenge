@@ -16,7 +16,7 @@ class TransactionsRepositoryImplTest extends Specification {
 
         when:
         repository.save(transaction)
-        def transactions = repository.findAll()
+        def transactions = repository.getAllStatistics()
 
         then:
         2 * configResolver.transactionsWindowInSeconds() >> 60
@@ -29,13 +29,13 @@ class TransactionsRepositoryImplTest extends Specification {
 
         when:
         transactions.forEach(repository.&save)
-        def transactionsBeforeClear = repository.findAll()
+        def statisticsBeforeClear = repository.getAllStatistics()
         repository.clearTransactions()
-        def transactionsAfterClear = repository.findAll()
+        def statisticsAfterClear = repository.getAllStatistics()
 
         then:
-        6 * configResolver.transactionsWindowInSeconds() >> 60
-        transactionsBeforeClear.size() == 3
-        transactionsAfterClear.size() == 0
+        4 * configResolver.transactionsWindowInSeconds() >> 60
+        statisticsBeforeClear.size() == 1
+        statisticsAfterClear.size() == 0
     }
 }

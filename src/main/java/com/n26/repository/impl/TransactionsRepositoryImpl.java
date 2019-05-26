@@ -1,15 +1,16 @@
 package com.n26.repository.impl;
 
 import com.n26.config.ConfigResolver;
-import com.n26.model.SecondTransactionsPair;
+import com.n26.model.Statistics;
+import com.n26.model.TimeStatisticPair;
 import com.n26.model.Transaction;
 import com.n26.repository.TransactionsRepository;
+import com.n26.utils.BigDecimalUtil;
 import com.n26.utils.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
 public class TransactionsRepositoryImpl implements TransactionsRepository {
 
     private final ConfigResolver configResolver;
-    private ConcurrentHashMap<Long, SecondTransactionsPair> hashMap;
+    private ConcurrentHashMap<Long, TimeStatisticPair> hashMap;
 
     @Autowired
     public TransactionsRepositoryImpl(ConfigResolver configResolver) {
@@ -29,10 +30,10 @@ public class TransactionsRepositoryImpl implements TransactionsRepository {
 
 
     @Override
-    public List<Transaction> findAll() {
-        return hashMap.values().stream().map(SecondTransactionsPair::getTransactions)
-                .flatMap(List::stream)
+    public List<Statistics> getAllStatistics() {
+        return hashMap.values().stream()
                 .filter(this::isAfterBeginningOfTransactionsWindow)
+                .map(TimeStatisticPair::getStatistic)
                 .collect(Collectors.toList());
 
     }
@@ -43,31 +44,49 @@ public class TransactionsRepositoryImpl implements TransactionsRepository {
         hashMap.compute(transactionsBucket, computeTransaction(transaction));
     }
 
-    private BiFunction<Long, SecondTransactionsPair, SecondTransactionsPair> computeTransaction(Transaction transaction) {
-        long timestampInSeconds = DateUtil.getEpochSecondsFromLocalDateTime(transaction.getTimestamp());
-        return (bucket, secondTransactionsPair) -> {
-            if (secondTransactionsPair == null || secondTransactionsPair.getSecond() != timestampInSeconds) {
-                return createNewSecondTransactionPair(transaction);
-            }
-
-            secondTransactionsPair.getTransactions().add(transaction);
-            return secondTransactionsPair;
-        };
-    }
-
-    private SecondTransactionsPair createNewSecondTransactionPair(Transaction transaction) {
-        ArrayList<Transaction> transactions = new ArrayList<>();
-        transactions.add(transaction);
-
-        return SecondTransactionsPair.builder()
-                .second(DateUtil.getEpochSecondsFromLocalDateTime(transaction.getTimestamp()))
-                .transactions(transactions)
-                .build();
-    }
-
     @Override
     public void clearTransactions() {
         this.hashMap.clear();
+    }
+
+    private BiFunction<Long, TimeStatisticPair, TimeStatisticPair> computeTransaction(Transaction transaction) {
+        return (bucket, secondStatisticPair) -> {
+            if (secondStatisticPair == null) {
+                return createNewSecondTransactionPair(transaction);
+            }
+
+            long bucketSeconds = DateUtil.getEpochSecondsFromLocalDateTime(secondStatisticPair.getTime());
+            long transactionSeconds = DateUtil.getEpochSecondsFromLocalDateTime(transaction.getTimestamp());
+            if (bucketSeconds != transactionSeconds) {
+                return createNewSecondTransactionPair(transaction);
+            }
+
+            updateStatistic(secondStatisticPair, transaction);
+            return secondStatisticPair;
+        };
+    }
+
+    private void updateStatistic(TimeStatisticPair secondStatisticPair, Transaction transaction) {
+        Statistics statistic = secondStatisticPair.getStatistic();
+        statistic.setSum(statistic.getSum().add(transaction.getAmount()));
+        statistic.setMin(BigDecimalUtil.min(statistic.getMin(), transaction.getAmount()));
+        statistic.setMax(BigDecimalUtil.max(statistic.getMax(), transaction.getAmount()));
+        statistic.setCount(statistic.getCount() + 1);
+
+        statistic.setAvg(BigDecimalUtil.avg(statistic.getSum(), statistic.getCount()));
+    }
+
+    private TimeStatisticPair createNewSecondTransactionPair(Transaction transaction) {
+        return TimeStatisticPair.builder()
+                .time(transaction.getTimestamp())
+                .statistic(Statistics.builder()
+                        .sum(transaction.getAmount())
+                        .avg(transaction.getAmount())
+                        .min(transaction.getAmount())
+                        .max(transaction.getAmount())
+                        .count(1L)
+                        .build())
+                .build();
     }
 
     private Long findTransactionBucket(Transaction transaction) {
@@ -75,8 +94,8 @@ public class TransactionsRepositoryImpl implements TransactionsRepository {
         return timestampInSeconds % configResolver.transactionsWindowInSeconds();
     }
 
-    private boolean isAfterBeginningOfTransactionsWindow(Transaction transaction) {
+    private boolean isAfterBeginningOfTransactionsWindow(TimeStatisticPair secondStatisticPair) {
         LocalDateTime beginningOfTransactionsWindow = LocalDateTime.now().minusSeconds(configResolver.transactionsWindowInSeconds());
-        return transaction.getTimestamp().isAfter(beginningOfTransactionsWindow);
+        return secondStatisticPair.getTime().isAfter(beginningOfTransactionsWindow);
     }
 }

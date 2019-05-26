@@ -1,7 +1,7 @@
 package com.n26.controller
 
 import com.n26.api.response.StatisticsResponse
-import com.n26.model.Statistic
+import com.n26.model.Statistics
 import com.n26.service.StatisticsService
 import org.modelmapper.ModelMapper
 import spock.lang.Specification
@@ -13,7 +13,7 @@ class StatisticsControllerTest extends Specification {
 
     def "should get statistics"() {
         given:
-        Statistic statistic = buildStatistic()
+        Statistics statistic = buildStatistic()
         StatisticsResponse statisticResponse = buildStatisticResponse()
 
         when:
@@ -30,7 +30,7 @@ class StatisticsControllerTest extends Specification {
     }
 
     def buildStatistic() {
-        return Statistic.builder()
+        return Statistics.builder()
                 .sum(new BigDecimal("10"))
                 .avg(new BigDecimal("10"))
                 .min(new BigDecimal("10"))

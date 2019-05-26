@@ -3,8 +3,9 @@ package com.n26.controller;
 import com.n26.Application;
 import com.n26.TestUtil;
 import com.n26.api.request.CreateTransactionRequest;
-import com.n26.model.Transaction;
+import com.n26.model.Statistics;
 import com.n26.repository.TransactionsRepository;
+import com.n26.service.StatisticsService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,9 +19,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -36,6 +37,9 @@ public class TransactionsControllerIntegratedTest {
 
     @Autowired
     private TransactionsRepository transactionsRepository;
+
+    @Autowired
+    private StatisticsService statisticsService;
 
     @Before
     public void setup() {
@@ -54,8 +58,8 @@ public class TransactionsControllerIntegratedTest {
                 .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isCreated());
 
-        List<Transaction> transactions = transactionsRepository.findAll();
-        assertEquals(1, transactions.size());
+        Statistics statistics = statisticsService.getStatistics();
+        assertEquals(1L, (long) statistics.getCount());
     }
 
     @Test
@@ -70,8 +74,8 @@ public class TransactionsControllerIntegratedTest {
                 .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isUnprocessableEntity());
 
-        List<Transaction> transactions = transactionsRepository.findAll();
-        assertEquals(0, transactions.size());
+        Statistics statistics = statisticsService.getStatistics();
+        assertEquals(0L, (long) statistics.getCount());
     }
 
     @Test
@@ -86,21 +90,21 @@ public class TransactionsControllerIntegratedTest {
                 .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isNoContent());
 
-        List<Transaction> transactions = transactionsRepository.findAll();
-        assertEquals(0, transactions.size());
+        Statistics statistics = statisticsService.getStatistics();
+        assertEquals(0L, (long) statistics.getCount());
     }
 
     @Test
     public void should_delete_transactions() throws Exception {
         insertTransactions();
-        List<Transaction> transactionsBeforeDelete = transactionsRepository.findAll();
+        Statistics statisticsBeforeDelete = statisticsService.getStatistics();
         mockMvc.perform(delete(TRANSACTIONS_PATH))
                 .andExpect(status().isNoContent());
 
-        List<Transaction> transactionsAfterDelete = transactionsRepository.findAll();
+        Statistics statisticsAfterDeletion = statisticsService.getStatistics();
 
-        assertEquals(10, transactionsBeforeDelete.size());
-        assertEquals(0, transactionsAfterDelete.size());
+        assertNotEquals(statisticsBeforeDelete.getCount(), statisticsAfterDeletion.getCount());
+        assertEquals(0L, (long) statisticsAfterDeletion.getCount());
     }
 
     private void insertTransactions() {
