@@ -6,12 +6,17 @@ import java.time.LocalDateTime
 import java.time.Month
 
 class DateUtilTest extends Specification {
+
+    def "setup"() {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
+    }
+
     def "should convert LocalDateTime to epochMilis"() {
         given:
         LocalDateTime localDateTime = LocalDateTime.of(1989, Month.MARCH, 15, 4, 37, 46)
 
         when:
-        long expectedMilli = 605950666000L
+        long expectedMilli = 605939866000L
 
         then:
         expectedMilli == DateUtil.getEpochMillisFromLocalDateTime(localDateTime)
@@ -22,7 +27,7 @@ class DateUtilTest extends Specification {
         LocalDateTime localDateTime = LocalDateTime.of(1989, Month.MARCH, 15, 4, 37, 46)
 
         when:
-        long expectedMilli = 605950666L
+        long expectedMilli = 605939866L
 
         then:
         expectedMilli == DateUtil.getEpochSecondsFromLocalDateTime(localDateTime)

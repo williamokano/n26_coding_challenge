@@ -1,0 +1,32 @@
+= N26 Coding Challenge
+:doctype: book
+:icons: f
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 4
+:sectlinks:
+:operation-curl-request-title: Curl
+:operation-http-response-title: Response
+:operation-http-request-title: HTTP Request
+
+[[overview]]
+Coding challenge for N26 hiring process. The test consists in saving transactions and recovering statistics with O(1) (constant) time.
+
+[[overview-http-status-codes]]
+== HTTP status codes
+
+|===
+| Status code | When it happens
+
+| `201 OK`
+| Created with success. This response occurs whenever a transaction is successfully created.
+
+| `204 No Content`
+| There's no content. This response occurs whenever a transaction fails to be created because it's older than 60 seconds or whenever you delete all transactions.
+
+| `400 Bad Request`
+| The provided payload is an unexpected format.
+
+| `422 Unprocessable Entity`
+| The provided payload could not be parsed into the destination object.
+|===

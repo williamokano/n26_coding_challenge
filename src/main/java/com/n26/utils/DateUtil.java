@@ -5,7 +5,7 @@ import java.time.ZoneId;
 
 public abstract class DateUtil {
     public static long getEpochMillisFromLocalDateTime(LocalDateTime someDate) {
-        return someDate.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        return someDate.atZone(ZoneId.of("UTC")).toInstant().toEpochMilli();
     }
 
     public static long getEpochSecondsFromLocalDateTime(LocalDateTime someDate) {
