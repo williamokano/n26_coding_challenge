@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateTransactionsRequest {
+public class CreateTransactionRequest {
     @NotNull
     private BigDecimal amount;
 

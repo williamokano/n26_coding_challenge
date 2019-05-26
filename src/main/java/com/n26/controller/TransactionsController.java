@@ -1,7 +1,7 @@
 package com.n26.controller;
 
 import com.n26.api.TransactionsResource;
-import com.n26.api.request.CreateTransactionsRequest;
+import com.n26.api.request.CreateTransactionRequest;
 import com.n26.model.Transaction;
 import com.n26.service.TransactionsService;
 import org.modelmapper.ModelMapper;
@@ -27,7 +27,7 @@ public class TransactionsController implements TransactionsResource {
 
     @Override
     @ResponseStatus(HttpStatus.CREATED)
-    public void createTransaction(@Valid @RequestBody CreateTransactionsRequest createTransactionsRequest) {
+    public void createTransaction(@Valid @RequestBody CreateTransactionRequest createTransactionsRequest) {
         transactionsService.addTransaction(mapper.map(createTransactionsRequest, Transaction.class));
     }
 

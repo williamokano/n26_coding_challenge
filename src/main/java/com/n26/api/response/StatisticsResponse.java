@@ -6,11 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.extern.java.Log;
 
 import java.math.BigDecimal;
 
-@Log
 @Data
 @Builder
 @NoArgsConstructor
