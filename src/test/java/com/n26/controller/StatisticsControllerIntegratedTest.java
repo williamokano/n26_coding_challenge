@@ -1,35 +1,26 @@
 package com.n26.controller;
 
-import com.n26.Application;
 import com.n26.TestUtil;
 import com.n26.model.Transaction;
 import com.n26.service.TransactionsService;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.Matchers.is;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@AutoConfigureMockMvc
-@RunWith(SpringRunner.class)
-@SpringBootTest(classes = Application.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class StatisticsControllerIntegratedTest {
+public class StatisticsControllerIntegratedTest extends BaseControllerTest {
     private final String STATISTICS_PATH = "/statistics";
-
-    @Autowired
-    private MockMvc mockMvc;
 
     @Autowired
     private TransactionsService transactionsService;
@@ -55,6 +46,13 @@ public class StatisticsControllerIntegratedTest {
         insertTransactions();
         mockMvc.perform(get(STATISTICS_PATH))
                 .andExpect(status().isOk())
+                .andDo(document("{method-name}", responseFields(
+                        fieldWithPath("sum").type("BigDecimal").description("a BigDecimal specifying the total sum of transaction value in the last 60 seconds"),
+                        fieldWithPath("avg").type("BigDecimal").description("a BigDecimal specifying the average amount of transaction value in the last 60 seconds"),
+                        fieldWithPath("min").type("BigDecimal").description("a BigDecimal specifying single lowest transaction value in the last 60 seconds"),
+                        fieldWithPath("max").type("BigDecimal").description("a BigDecimal specifying single highest transaction value in the last 60 seconds"),
+                        fieldWithPath("count").type("long").description("a long specifying the total number of transactions that happened in the last 60 seconds")
+                )))
                 .andExpect(jsonPath("$.sum", is("779.91")))
                 .andExpect(jsonPath("$.avg", is("48.74")))
                 .andExpect(jsonPath("$.min", is("10.11")))

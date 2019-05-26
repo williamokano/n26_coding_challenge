@@ -1,13 +1,11 @@
 = N26 Coding Challenge
 :doctype: book
-:icons: f
+:icons: font
 :source-highlighter: highlightjs
 :toc: left
-:toclevels: 4
+:toclevels: 2
+:toc-title: Table of contents
 :sectlinks:
-:operation-curl-request-title: Curl
-:operation-http-response-title: Response
-:operation-http-request-title: HTTP Request
 
 [[overview]]
 Coding challenge for N26 hiring process. The test consists in saving transactions and recovering statistics with O(1) (constant) time.
@@ -30,3 +28,54 @@ Coding challenge for N26 hiring process. The test consists in saving transaction
 | `422 Unprocessable Entity`
 | The provided payload could not be parsed into the destination object.
 |===
+
+[[endpoints]]
+== Endpoints
+
+[[create-transaction]]
+=== Create / Add Transaction
+
+This endpoint is called to create a new transaction. It executes in constant time and memory (O(1)).
+
+Call curl:
+include::{snippets}/should_create_transaction/curl-request.adoc[]
+
+Request:
+include::{snippets}/should_create_transaction/http-request.adoc[]
+
+Request Fields:
+include::{snippets}/should_create_transaction/request-fields.adoc[]
+
+Response success:
+include::{snippets}/should_create_transaction/http-response.adoc[]
+
+[[get-statistics]]
+=== Get Statistics
+This endpoint returns the statistics based on the transactions that happened in the last 60 seconds. It executes in constant time and memory (O(1)).
+
+Call curl:
+include::{snippets}/should_obtain_calculated_statistics_when_has_transaction/curl-request.adoc[]
+
+Request:
+include::{snippets}/should_obtain_calculated_statistics_when_has_transaction/http-request.adoc[]
+
+Response Fields:
+include::{snippets}/should_obtain_calculated_statistics_when_has_transaction/response-fields.adoc[]
+
+Response success:
+include::{snippets}/should_obtain_calculated_statistics_when_has_transaction/http-response.adoc[]
+
+IMPORTANT: All BigDecimal values always contain exactly two decimal places and use `HALF_ROUND_UP` rounding. eg: 10.345 is returned as 10.35, 10.8 is returned as 10.80
+
+[[delete-transactions]]
+=== Delete Transactions
+This endpoint causes all existing transactions to be deleted.
+
+Call curl:
+include::{snippets}/should_delete_transactions/curl-request.adoc[]
+
+Request:
+include::{snippets}/should_delete_transactions/http-request.adoc[]
+
+Response success:
+include::{snippets}/should_delete_transactions/http-response.adoc[]
