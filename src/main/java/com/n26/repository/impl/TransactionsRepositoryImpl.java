@@ -32,7 +32,7 @@ public class TransactionsRepositoryImpl implements TransactionsRepository {
     @Override
     public List<Statistics> getAllStatistics() {
         return hashMap.values().stream()
-                .filter(this::isAfterBeginningOfTransactionsWindow)
+                .filter(this::isAfterBeginningOfTransactionsTimeWindow)
                 .map(TimeStatisticPair::getStatistic)
                 .collect(Collectors.toList());
 
@@ -50,23 +50,31 @@ public class TransactionsRepositoryImpl implements TransactionsRepository {
     }
 
     private BiFunction<Long, TimeStatisticPair, TimeStatisticPair> computeTransaction(Transaction transaction) {
-        return (bucket, secondStatisticPair) -> {
-            if (secondStatisticPair == null) {
-                return createNewSecondTransactionPair(transaction);
+        return (bucket, timeStatisticPair) -> {
+            if (bucketHasNoValue(timeStatisticPair)) {
+                return createTimeStatisticPairFromTransaction(transaction);
             }
 
-            long bucketSeconds = DateUtil.getEpochSecondsFromLocalDateTime(secondStatisticPair.getTime());
-            long transactionSeconds = DateUtil.getEpochSecondsFromLocalDateTime(transaction.getTimestamp());
-            if (bucketSeconds != transactionSeconds) {
-                return createNewSecondTransactionPair(transaction);
+            if (bucketAndTransactionNotInTheSameEpoch(timeStatisticPair, transaction)) {
+                return createTimeStatisticPairFromTransaction(transaction);
             }
 
-            updateStatistic(secondStatisticPair, transaction);
-            return secondStatisticPair;
+            updateStatistics(timeStatisticPair, transaction);
+            return timeStatisticPair;
         };
     }
 
-    private void updateStatistic(TimeStatisticPair secondStatisticPair, Transaction transaction) {
+    private boolean bucketHasNoValue(TimeStatisticPair timeStatisticPair) {
+        return timeStatisticPair == null;
+    }
+
+    private boolean bucketAndTransactionNotInTheSameEpoch(TimeStatisticPair timeStatisticPair, Transaction transaction) {
+        long bucketSeconds = DateUtil.getEpochSecondsFromLocalDateTime(timeStatisticPair.getTime());
+        long transactionSeconds = DateUtil.getEpochSecondsFromLocalDateTime(transaction.getTimestamp());
+        return bucketSeconds != transactionSeconds;
+    }
+
+    private void updateStatistics(TimeStatisticPair secondStatisticPair, Transaction transaction) {
         Statistics statistic = secondStatisticPair.getStatistic();
         statistic.setSum(statistic.getSum().add(transaction.getAmount()));
         statistic.setMin(BigDecimalUtil.min(statistic.getMin(), transaction.getAmount()));
@@ -76,7 +84,7 @@ public class TransactionsRepositoryImpl implements TransactionsRepository {
         statistic.setAvg(BigDecimalUtil.avg(statistic.getSum(), statistic.getCount()));
     }
 
-    private TimeStatisticPair createNewSecondTransactionPair(Transaction transaction) {
+    private TimeStatisticPair createTimeStatisticPairFromTransaction(Transaction transaction) {
         return TimeStatisticPair.builder()
                 .time(transaction.getTimestamp())
                 .statistic(Statistics.builder()
@@ -94,7 +102,7 @@ public class TransactionsRepositoryImpl implements TransactionsRepository {
         return timestampInSeconds % configResolver.transactionsWindowInSeconds();
     }
 
-    private boolean isAfterBeginningOfTransactionsWindow(TimeStatisticPair secondStatisticPair) {
+    private boolean isAfterBeginningOfTransactionsTimeWindow(TimeStatisticPair secondStatisticPair) {
         LocalDateTime beginningOfTransactionsWindow = LocalDateTime.now().minusSeconds(configResolver.transactionsWindowInSeconds());
         return secondStatisticPair.getTime().isAfter(beginningOfTransactionsWindow);
     }

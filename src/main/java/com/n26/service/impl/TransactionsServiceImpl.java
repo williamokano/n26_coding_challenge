@@ -35,12 +35,12 @@ public class TransactionsServiceImpl implements TransactionsService {
     }
 
     private void validateTransaction(Transaction transaction) {
-        validateTransactionIsInsideStatisticsWindow(transaction, LocalDateTime.now());
+        validateTransactionIsInsideStatisticsTimeWindow(transaction, LocalDateTime.now());
     }
 
-    private void validateTransactionIsInsideStatisticsWindow(Transaction transaction, LocalDateTime now) {
+    private void validateTransactionIsInsideStatisticsTimeWindow(Transaction transaction, LocalDateTime now) {
         validateTransactionIsNotInTheFuture(transaction, now);
-        validateTransactionIsNotOutsidePastWindow(transaction, now);
+        validateTransactionIsNotBeforeTimeWindow(transaction, now);
     }
 
     private void validateTransactionIsNotInTheFuture(Transaction transaction, LocalDateTime now) {
@@ -49,7 +49,7 @@ public class TransactionsServiceImpl implements TransactionsService {
         }
     }
 
-    private void validateTransactionIsNotOutsidePastWindow(Transaction transaction, LocalDateTime now) {
+    private void validateTransactionIsNotBeforeTimeWindow(Transaction transaction, LocalDateTime now) {
         LocalDateTime beginningStatisticsWindow = now.minusSeconds(configResolver.transactionsWindowInSeconds());
         if (transaction.getTimestamp().isBefore(beginningStatisticsWindow)) {
             throw new TooOldTransactionException(transaction);

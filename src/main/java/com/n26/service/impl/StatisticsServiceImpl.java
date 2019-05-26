@@ -7,8 +7,6 @@ import com.n26.utils.BigDecimalUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-
 @Service
 public class StatisticsServiceImpl implements StatisticsService {
 
@@ -21,35 +19,16 @@ public class StatisticsServiceImpl implements StatisticsService {
 
     @Override
     public Statistics getStatistics() {
-        Statistics statistic = processTransactions();
-
-        return formatRoundHalfUp(statistic);
-    }
-
-    private Statistics formatRoundHalfUp(Statistics statistic) {
-        statistic.setSum(statistic.getSum().setScale(2, BigDecimal.ROUND_HALF_UP));
-        statistic.setAvg(statistic.getAvg().setScale(2, BigDecimal.ROUND_HALF_UP));
-        statistic.setMin(statistic.getMin().setScale(2, BigDecimal.ROUND_HALF_UP));
-        statistic.setMax(statistic.getMax().setScale(2, BigDecimal.ROUND_HALF_UP));
-
-        return statistic;
+        return processTransactions().roundHalfUp();
     }
 
     private Statistics processTransactions() {
-        Statistics responseStatistics = Statistics.builder()
-                .sum(new BigDecimal(0))
-                .avg(new BigDecimal(0))
-                .min(new BigDecimal(0))
-                .max(new BigDecimal(0))
-                .count(0L)
-                .build();
-
-        transactionsRepository.getAllStatistics().forEach(statistics -> mergeStatistics(responseStatistics, statistics));
-
+        Statistics responseStatistics = Statistics.empty();
+        transactionsRepository.getAllStatistics().forEach(statistics -> aggregateStatistics(responseStatistics, statistics));
         return responseStatistics;
     }
 
-    private void mergeStatistics(Statistics first, Statistics second) {
+    private void aggregateStatistics(Statistics first, Statistics second) {
         first.setSum(first.getSum().add(second.getSum()));
         first.setMin(first.getCount() == 0 ? second.getMin() : BigDecimalUtil.min(first.getMin(), second.getMin()));
         first.setMax(first.getCount() == 0 ? second.getMax() : BigDecimalUtil.max(first.getMax(), second.getMax()));
